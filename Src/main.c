@@ -39,6 +39,24 @@ void proccesDmaData(uint8_t sign);
 /* Space for your global variables. */
 
 	// type your global variables here:
+#define MAX_CHARS_AFTER_START 35
+
+letter_count_ letter_count;
+char valid_string[MAX_CHARS_AFTER_START + 1];
+volatile uint8_t valid_string_ready = 0;
+
+#include <stdio.h>
+
+uint8_t tx_status[100];
+uint8_t tx_result[100];
+
+static void send_string(uint8_t *buf, int len)
+{
+	if(len <= 0) return;
+	if(len > 255) len = 255;
+	while(!USART2_IsTxFree());
+	USART2_PutBuffer(buf, (uint8_t)len);
+}
 
 
 int main(void)
@@ -60,6 +78,9 @@ int main(void)
   /* Space for your local variables, callback registration ...*/
 
   	  //type your code here:
+  USART2_RegisterCallback(proccesDmaData);
+
+  uint16_t tick_10ms = 0;
 
   while (1)
   {
@@ -76,6 +97,31 @@ int main(void)
 	   */
 
   	  	  	  //type your code here:
+	  if(valid_string_ready)
+	  {
+		  int len = snprintf((char*)tx_result, sizeof(tx_result),
+				  "Valid string: %s, lower-case: %d, upper-case: %d\r\n",
+				  valid_string, letter_count.small_letter, letter_count.capital_letter);
+		  valid_string_ready = 0;
+		  send_string(tx_result, len);
+	  }
+
+	  if(tick_10ms >= 200)
+	  {
+		  tick_10ms = 0;
+
+		  uint16_t occupied = USART2_GetRxBufferOccupied();
+		  uint32_t load_x10 = (occupied * 1000UL) / DMA_USART2_BUFFER_SIZE;
+
+		  int len = snprintf((char*)tx_status, sizeof(tx_status),
+				  "Buffer capacity: %d bytes, occupied memory: %d bytes, load [in %%]: %u.%u%%\r\n",
+				  DMA_USART2_BUFFER_SIZE, occupied,
+				  (unsigned)(load_x10 / 10), (unsigned)(load_x10 % 10));
+		  send_string(tx_status, len);
+	  }
+
+	  LL_mDelay(10);
+	  tick_10ms++;
   }
   /* USER CODE END 3 */
 }
@@ -120,6 +166,43 @@ void proccesDmaData(uint8_t sign)
 	/* Process received data */
 
 		// type your algorithm here:
+	static uint8_t receiving = 0;
+	static uint8_t count = 0;
+	static char buf[MAX_CHARS_AFTER_START + 1];
+	static letter_count_ tmp;
+
+	if(sign == '#')
+	{
+		receiving = 1;
+		count = 0;
+		tmp.small_letter = 0;
+		tmp.capital_letter = 0;
+		return;
+	}
+
+	if(!receiving) return;
+
+	count++;
+
+	if(sign == '$')
+	{
+		buf[count - 1] = '\0';
+		for(uint8_t i = 0; i < count; i++) valid_string[i] = buf[i];
+		letter_count = tmp;
+		valid_string_ready = 1;
+		receiving = 0;
+		return;
+	}
+
+	if(count >= MAX_CHARS_AFTER_START)
+	{
+		receiving = 0;
+		return;
+	}
+
+	buf[count - 1] = sign;
+	if(sign >= 'a' && sign <= 'z')      tmp.small_letter++;
+	else if(sign >= 'A' && sign <= 'Z') tmp.capital_letter++;
 }
 
 
