@@ -45,7 +45,8 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-
+float temperature = 0.0f;
+float humidity = 0.0f;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -114,6 +115,8 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+	hts221_get_temperature(&temperature);
+	hts221_get_humidity(&humidity);
 	LL_GPIO_TogglePin(GPIOB, LL_GPIO_PIN_3);
 	LL_mDelay(500);
   }

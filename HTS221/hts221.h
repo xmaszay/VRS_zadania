@@ -13,6 +13,12 @@
 #define HTS221_CTRL_REG3            0x22U
 #define HTS221_STATUS_REG           0x27U
 
+#define HTS221_HUMIDITY_OUT_L       0x28U
+#define HTS221_HUMIDITY_OUT_H       0x29U
+#define HTS221_TEMP_OUT_L           0x2AU
+#define HTS221_TEMP_OUT_H           0x2BU
+#define HTS221_CALIB_START          0x30U
+
 #define HTS221_AUTO_INCREMENT       0x80U
 
 #define HTS221_AV_CONF_AVGT_16      (0x03U << 3)
@@ -23,6 +29,9 @@
 #define HTS221_CTRL_REG1_ODR_1HZ    0x01U
 #define HTS221_CTRL_REG1_ODR_7HZ    0x02U
 #define HTS221_CTRL_REG1_ODR_12HZ5  0x03U
+
+#define HTS221_STATUS_T_DA          0x01U
+#define HTS221_STATUS_H_DA          0x02U
 
 #define HTS221_OK                   0U
 #define HTS221_ERROR                1U
@@ -36,5 +45,8 @@ uint8_t hts221_read(uint8_t register_address, uint8_t *data, uint8_t length);
 uint8_t hts221_write(uint8_t register_address, uint8_t *data, uint8_t length);
 
 uint8_t hts221_init(void);
+
+uint8_t hts221_get_temperature(float *temperature);
+uint8_t hts221_get_humidity(float *humidity);
 
 #endif
