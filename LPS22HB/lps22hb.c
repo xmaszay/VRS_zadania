@@ -1,4 +1,5 @@
 #include "lps22hb.h"
+#include <math.h>
 
 static lps22hb_read_fn lps22hb_read_cb = 0;
 static lps22hb_write_fn lps22hb_write_cb = 0;
@@ -84,4 +85,48 @@ uint8_t lps22hb_get_temperature(float *temperature)
 	*temperature = (float)t_out / LPS22HB_TEMPERATURE_SENS;
 
 	return LPS22HB_OK;
+}
+
+#define LPS22HB_REFERENCE_TIMEOUT  1000U
+
+uint8_t lps22hb_get_reference_pressure(float *reference_pressure, uint8_t samples)
+{
+	uint8_t status;
+	uint32_t timeout;
+	float pressure;
+	float sum = 0.0f;
+
+	if(reference_pressure == 0 || samples == 0)
+	{
+		return LPS22HB_ERROR;
+	}
+
+	for(uint8_t i = 0; i < samples; i++)
+	{
+		timeout = LPS22HB_REFERENCE_TIMEOUT;
+		do
+		{
+			if(lps22hb_read(LPS22HB_STATUS, &status, 1) != LPS22HB_OK || --timeout == 0)
+			{
+				return LPS22HB_ERROR;
+			}
+		}
+		while(!(status & LPS22HB_STATUS_P_DA));
+
+		if(lps22hb_get_pressure(&pressure) != LPS22HB_OK)
+		{
+			return LPS22HB_ERROR;
+		}
+
+		sum += pressure;
+	}
+
+	*reference_pressure = sum / samples;
+
+	return LPS22HB_OK;
+}
+
+float lps22hb_calculate_altitude(float pressure, float reference_pressure)
+{
+	return LPS22HB_ALTITUDE_CONST * (1.0f - powf(pressure / reference_pressure, LPS22HB_ALTITUDE_EXP));
 }

@@ -35,6 +35,9 @@
 #define LPS22HB_PRESSURE_SENS       4096.0f
 #define LPS22HB_TEMPERATURE_SENS    100.0f
 
+#define LPS22HB_ALTITUDE_CONST      44330.0f
+#define LPS22HB_ALTITUDE_EXP        0.190295f
+
 #define LPS22HB_OK                  0U
 #define LPS22HB_ERROR               1U
 
@@ -49,5 +52,8 @@ uint8_t lps22hb_write(uint8_t register_address, uint8_t *data, uint8_t length);
 uint8_t lps22hb_init(void);
 uint8_t lps22hb_get_pressure(float *pressure);
 uint8_t lps22hb_get_temperature(float *temperature);
+
+uint8_t lps22hb_get_reference_pressure(float *reference_pressure, uint8_t samples);
+float lps22hb_calculate_altitude(float pressure, float reference_pressure);
 
 #endif

@@ -50,6 +50,9 @@ float temperature = 0.0f;
 float humidity = 0.0f;
 
 float pressure = 0.0f;
+
+float reference_pressure = 0.0f;
+float altitude = 0.0f;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -117,6 +120,12 @@ int main(void)
   	LL_GPIO_SetOutputPin(GPIOB, LL_GPIO_PIN_3);
   	while(1);
   }
+
+  if(lps22hb_get_reference_pressure(&reference_pressure, 10) != LPS22HB_OK)
+  {
+  	LL_GPIO_SetOutputPin(GPIOB, LL_GPIO_PIN_3);
+  	while(1);
+  }
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -129,6 +138,7 @@ int main(void)
 	hts221_get_temperature(&temperature);
 	hts221_get_humidity(&humidity);
 	lps22hb_get_pressure(&pressure);
+	altitude = lps22hb_calculate_altitude(pressure, reference_pressure);
 	LL_GPIO_TogglePin(GPIOB, LL_GPIO_PIN_3);
 	LL_mDelay(500);
   }
