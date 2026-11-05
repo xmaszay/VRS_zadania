@@ -74,6 +74,14 @@ void MX_USART2_UART_Init(void)
 }
 
 /* USER CODE BEGIN 1 */
-
+void usart2_send_string(const char *str)
+{
+	while(*str)
+	{
+		while(!LL_USART_IsActiveFlag_TXE(USART2));
+		LL_USART_TransmitData8(USART2, (uint8_t)*str++);
+	}
+	while(!LL_USART_IsActiveFlag_TC(USART2));
+}
 /* USER CODE END 1 */
 

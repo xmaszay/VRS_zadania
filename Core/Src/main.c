@@ -26,6 +26,7 @@
 /* USER CODE BEGIN Includes */
 #include "hts221.h"
 #include "lps22hb.h"
+#include <stdio.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -53,6 +54,8 @@ float pressure = 0.0f;
 
 float reference_pressure = 0.0f;
 float altitude = 0.0f;
+
+char uart_buffer[64];
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -139,8 +142,12 @@ int main(void)
 	hts221_get_humidity(&humidity);
 	lps22hb_get_pressure(&pressure);
 	altitude = lps22hb_calculate_altitude(pressure, reference_pressure);
+
+	snprintf(uart_buffer, sizeof(uart_buffer), "%.1f,%.0f,%.2f,%.2f\r\n", temperature, humidity, pressure, altitude);
+	usart2_send_string(uart_buffer);
+
 	LL_GPIO_TogglePin(GPIOB, LL_GPIO_PIN_3);
-	LL_mDelay(500);
+	LL_mDelay(200);
   }
   /* USER CODE END 3 */
 }
