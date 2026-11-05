@@ -24,7 +24,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "hts221.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -98,7 +98,13 @@ int main(void)
   MX_I2C1_Init();
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
-  uint8_t who_hts = 0, who_lps = 0;
+  hts221_register_callbacks(i2c_master_read, i2c_master_write);
+
+  if(hts221_init() != HTS221_OK)
+  {
+  	LL_GPIO_SetOutputPin(GPIOB, LL_GPIO_PIN_3);
+  	while(1);
+  }
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -108,14 +114,8 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-
-	  i2c_master_read_byte(0xBE, 0x0F, &who_hts);
-	  i2c_master_read_byte(0xBA, 0x0F, &who_lps);
-	  if(who_hts == 0xBC && who_lps == 0xB1)
-	  	  {
-		  LL_GPIO_TogglePin(GPIOB, LL_GPIO_PIN_3);
-	  	  }
-	  LL_mDelay(200);
+	LL_GPIO_TogglePin(GPIOB, LL_GPIO_PIN_3);
+	LL_mDelay(500);
   }
   /* USER CODE END 3 */
 }
